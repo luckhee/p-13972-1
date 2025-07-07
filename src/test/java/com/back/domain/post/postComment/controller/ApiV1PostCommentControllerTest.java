@@ -1,5 +1,7 @@
 package com.back.domain.post.postComment.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.entity.PostComment;
@@ -30,6 +32,8 @@ public class ApiV1PostCommentControllerTest {
     private MockMvc mvc;
     @Autowired
     private PostService postService;
+    @Autowired
+    private MemberService memberService;
 
     @Test
     @DisplayName("댓글 단건조회")
@@ -93,9 +97,15 @@ public class ApiV1PostCommentControllerTest {
         int postId = 1;
         int id = 1;
 
+        Post psot = postService.findById(postId).get();
+        PostComment postComment = psot.findCommentById(id).get();
+        Member actor = postComment.getAuthor();
+        String actorApiKey = actor.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
-                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id)).
+                                header("Authorization","Bearer" + actorApiKey)
                 )
                 .andDo(print());
 
@@ -113,9 +123,16 @@ public class ApiV1PostCommentControllerTest {
         int postId = 1;
         int id = 1;
 
+        Post post = postService.findById(postId).get();
+        PostComment postComment = post.findCommentById(id).get();
+        Member actor = postComment.getAuthor();
+        String actorApiKey = actor.getApiKey();
+
+
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -138,10 +155,14 @@ public class ApiV1PostCommentControllerTest {
     void t5() throws Exception {
         int postId = 1;
 
+        Member actor = memberService.findByUserName("user1").get();
+        String actorApiKey = actor.getApiKey();
+
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts/%d/comments".formatted(postId))
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization","Bearer %s"+ actorApiKey)
                                 .content("""
                                         {
                                             "content": "내용"

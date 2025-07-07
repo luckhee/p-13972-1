@@ -1,5 +1,7 @@
 package com.back.domain.post.post.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import org.hamcrest.Matchers;
@@ -29,14 +31,22 @@ public class ApiV1PostControllerTest {
     private MockMvc mvc;
     @Autowired
     private PostService postService;
+    @Autowired
+    private MemberService memberService;
+
 
     @Test
     @DisplayName("글 쓰기")
     void t1() throws Exception {
+        Member actor = memberService.findByUserName("user1").get();
+        String actorApiKey = actor.getApiKey();
+
+
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts")
+                        post("/api/v1/posts?apiKey")
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization","Bearer " + actorApiKey)
                                 .content("""
                                         {
                                             "title": "제목",
@@ -57,6 +67,8 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.id").value(post.getId()))
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.authorId").value(post.getMember().getId()))
+                .andExpect(jsonPath("$.data.authorName").value(post.getMember().getNickname()))
                 .andExpect(jsonPath("$.data.title").value("제목"))
                 .andExpect(jsonPath("$.data.content").value("내용"));
     }
@@ -146,11 +158,16 @@ public class ApiV1PostControllerTest {
     @DisplayName("글 수정")
     void t2() throws Exception {
         int id = 1;
+        Post post = postService.findById(id).get();
+        Member actor = post.getMember();
+        String actorApiKey = actor.getApiKey();
+
 
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/" + id)
                                 .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .content("""
                                         {
                                             "title": "제목 new",
@@ -208,6 +225,8 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.id").value(post.getId()))
                 .andExpect(jsonPath("$.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.authorId").value(post.getMember().getId()))
+                .andExpect(jsonPath("$.authorName").value(post.getMember().getNickname()))
                 .andExpect(jsonPath("$.title").value(post.getTitle()))
                 .andExpect(jsonPath("$.content").value(post.getContent()));
     }
@@ -255,6 +274,8 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].id".formatted(i)).value(post.getId()))
                     .andExpect(jsonPath("$[%d].createDate".formatted(i)).value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                     .andExpect(jsonPath("$[%d].modifyDate".formatted(i)).value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
+                    .andExpect(jsonPath("$[%d].authorId".formatted(i)).value(post.getMember().getId()))
+                    .andExpect(jsonPath("$[%d].authorName".formatted(i)).value(post.getMember().getNickname()))
                     .andExpect(jsonPath("$[%d].title".formatted(i)).value(post.getTitle()))
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
         }
