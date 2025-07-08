@@ -45,14 +45,6 @@ public class Rq {
         return member;
     }
 
-    public void setCookie(String name, String value) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-
-        resp.addCookie(cookie);
-    }
-
     private String getCookieValue(String name, String defaultValue) {
         return Optional
                 .ofNullable(req.getCookies())
@@ -74,13 +66,24 @@ public class Rq {
                 .orElse(defaultValue);
     }
 
-    public void deleteCookie(String name) {
-        Cookie cookie = new Cookie(name, "");
+
+    public void setCookie(String name, String value) {
+        if (value == null) value = "";
+
+        Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
+
+        if (value.isBlank()) {
+            cookie.setMaxAge(0);
+        }
 
         resp.addCookie(cookie);
+    }
+
+
+    public void deleteCookie(String name) {
+        setCookie("name", null);
     }
 
 
