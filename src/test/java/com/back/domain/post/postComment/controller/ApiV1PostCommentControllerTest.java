@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("test")
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -97,15 +98,15 @@ public class ApiV1PostCommentControllerTest {
         int postId = 1;
         int id = 1;
 
-        Post psot = postService.findById(postId).get();
-        PostComment postComment = psot.findCommentById(id).get();
+        Post post = postService.findById(postId).get();
+        PostComment postComment = post.findCommentById(id).get();
         Member actor = postComment.getAuthor();
         String actorApiKey = actor.getApiKey();
 
         ResultActions resultActions = mvc
                 .perform(
-                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id)).
-                                header("Authorization","Bearer" + actorApiKey)
+                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                                .header("Authorization", "Bearer " + actorApiKey)
                 )
                 .andDo(print());
 
@@ -116,6 +117,7 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 댓글이 삭제되었습니다.".formatted(id)));
     }
+
 
     @Test
     @DisplayName("댓글 수정")
@@ -161,8 +163,8 @@ public class ApiV1PostCommentControllerTest {
         ResultActions resultActions = mvc
                 .perform(
                         post("/api/v1/posts/%d/comments".formatted(postId))
+                                .header("Authorization", "Bearer " + actorApiKey)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .header("Authorization","Bearer %s"+ actorApiKey)
                                 .content("""
                                         {
                                             "content": "내용"
@@ -184,6 +186,9 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$.data.id").value(postComment.getId()))
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.authorId").value(postComment.getAuthor().getId()))
+                .andExpect(jsonPath("$.data.authorName").value(postComment.getAuthor().getName()))
+                .andExpect(jsonPath("$.data.postId").value(postComment.getPost().getId()))
                 .andExpect(jsonPath("$.data.content").value("내용"));
     }
 }

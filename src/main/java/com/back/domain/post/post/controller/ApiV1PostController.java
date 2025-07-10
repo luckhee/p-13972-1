@@ -1,6 +1,7 @@
 package com.back.domain.post.post.controller;
 
 import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
@@ -29,7 +30,7 @@ import java.util.List;
 public class ApiV1PostController {
     private final PostService postService;
     private final Rq rq;
-
+    private final MemberService memberService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -92,7 +93,7 @@ public class ApiV1PostController {
             @Valid @RequestBody PostWriteReqBody reqBody
 
     ) {
-        Member actor = rq.getActor();
+         Member actor = rq.getActor();
 
         Post post = postService.write(actor, reqBody.title, reqBody.content);
 

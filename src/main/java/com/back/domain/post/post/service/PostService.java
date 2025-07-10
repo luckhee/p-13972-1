@@ -37,8 +37,8 @@ public class PostService {
         post.modify(title, content);
     }
 
-    public PostComment writeComment(Post post, String content) {
-        return post.addComment(content);
+    public PostComment writeComment(Member author, Post post, String content) {
+        return post.addComment(author, content);
     }
 
     public boolean deleteComment(Post post, PostComment postComment) {

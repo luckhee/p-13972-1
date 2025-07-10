@@ -9,12 +9,15 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final AuthTokenService authTokenService;
+
 
     public Member join(String name, String password, String nickname) {
         memberRepository
@@ -34,11 +37,6 @@ public class MemberService {
         return memberRepository.count();
     }
 
-    public Member findById(int i) {
-        return memberRepository.findById(i).get();
-
-
-    }
 
     public Optional<Member> findByUserName(@NotBlank @Size(min = 2, max = 100) String name) {
 
@@ -48,5 +46,17 @@ public class MemberService {
 
     public Optional<Member> findByApiKey(@NotBlank @Size(min = 30, max = 50) String apiKey) {
         return memberRepository.findByapiKey(apiKey);
+    }
+
+    public String genAccessToken(Member member) {
+        return authTokenService.genAccessToken(member);
+    }
+
+    public Map<String, Object> payload(String accessToken) {
+        return authTokenService.payload(accessToken);
+    }
+
+    public Optional<Member> findById(int id) {
+        return memberRepository.findById(id);
     }
 }

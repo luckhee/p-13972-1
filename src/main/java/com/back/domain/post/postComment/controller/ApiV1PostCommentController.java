@@ -132,11 +132,9 @@ public class ApiV1PostCommentController {
             @Valid @RequestBody PostCommentWriteReqBody reqBody
     ) {
         Member actor = rq.getActor();
-
         Post post = postService.findById(postId).get();
 
-
-        PostComment postComment = postService.writeComment(post, reqBody.content);
+        PostComment postComment = postService.writeComment(actor, post, reqBody.content);
 
         // 트랜잭션 끝난 후 수행되어야 하는 더티체킹 및 여러가지 작업들을 지금 당장 수행해라.
         postService.flush();
